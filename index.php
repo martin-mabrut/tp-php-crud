@@ -6,13 +6,13 @@ $stmt = $pdo->prepare($query);
 $stmt->execute();
 $movies = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-var_dump($movies);
+// var_dump($movies);
 
 $queryGenres = "SELECT * FROM genres";
 $stmt = $pdo->prepare($queryGenres);
 $stmt->execute();
 $genres = $stmt->fetchAll(PDO::FETCH_ASSOC);
-var_dump($genres);
+// var_dump($genres);
 ?>
 
 <!DOCTYPE html>
@@ -60,7 +60,7 @@ var_dump($genres);
 </div>
 
 
-/* Modale Add Movie ----------------------------------- */
+// Modale
 
 
 
@@ -74,8 +74,15 @@ var_dump($genres);
       </div>
         <div class="modal-body">
 
-        <?php
+
+
+        <form method="post" id="addMovieForm">
+
+         <?php
+            $erreur = "";
+
             if (isset($_POST['submit'])) {
+
 
                 $name = $_POST['name'];
                 $synopsis = $_POST['synopsis'];
@@ -83,18 +90,13 @@ var_dump($genres);
                 $image_url = $_POST['image_url'];
                 $genre_id = $_POST['genre_id'];
 
-                if (!$name) {
-                    echo "Le champ Nom est vide";
-                } else if (!$synopsis) {
-                    echo "Le champ Synopsis est vide";
-                } else if ($rating < 0 or $rating > 5) {
-                    echo "Choississez un nombre entre 0 et 5";
-                } else if (gettype($rating) !== 'number') {
-                    echo "Choississez un nombre entre 0 et 5";
-                } else if (!$image_url) {
-                    echo "Veuillez ajouter une image";
+
+                if ($name === "" || $synopsis === "" || $image_url === "" || $rating === "") {
+                    $erreur = "Tous les champs doivent être remplis";
+                } else if ($rating < 0 || $rating > 5) {
+                    $erreur = "L'évaluation doit être comprise entre 0 et 5";
                 } else if (!in_array($genre_id, array_column($genres,'genre_id'))) {
-                    echo "Ce genre n'existe pas"; 
+                    $erreur = "Ce genre n'existe pas";
                 } else {
                             $pdo = new PDO('mysql:host=127.0.0.1;dbname=tp_php;port=3506', 'root', 'root');
 
@@ -104,9 +106,11 @@ var_dump($genres);
                             header('Location: index.php');
                 }
             }
-        ?>
 
-        <form method="post" id="addMovieForm">
+            if ($erreur !== "") {
+                echo "<p class='text-danger'>" . $erreur . "</p>";
+            }
+        ?>
 
             <div class="container">
                 <div class="row g-3">
@@ -153,12 +157,16 @@ var_dump($genres);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-var myModal = document.getElementById('myModal')
-var myInput = document.getElementById('myInput')
+var myModal = document.getElementById('exampleModal')
+var myInput = document.getElementById('name')
 
 myModal.addEventListener('shown.bs.modal', function () {
   myInput.focus()
 })
+
+<?php if ($erreur !== "") : ?>
+  new bootstrap.Modal(myModal).show()
+<?php endif; ?>
 </script>
 </body>
 </html>
